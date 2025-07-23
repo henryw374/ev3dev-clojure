@@ -1,0 +1,10 @@
+{:mvn/repos {"jitpack" {:url "https://jitpack.io"}}
+ :deps      {org.slf4j/slf4j-simple                       {:mvn/version "1.7.25"}
+             com.github.ev3dev-lang-java/ev3dev-lang-java {:mvn/version "2.6.2-SNAPSHOT"}
+             org.clojure/clojure                          {:mvn/version "1.12.0"}}
+ :paths     ["src"]
+ :aliases
+ {:build {:deps       {io.github.clojure/tools.build {:git/tag "v0.10.9" :git/sha "e405aac"}}
+          :ns-default build
+          :paths ["dev"]
+          }}}
