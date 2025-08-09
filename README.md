@@ -14,9 +14,7 @@ want a repl and to use java interop... simples.
 ```shell
 robot@ev3dev:~$ java -jar lib1-standalone.jar 
 ```
-
-* this may take minutes
-    * this may take minutes to connect. you will see 'starting' printed eventually
+* this may take minutes to connect. you will see 'starting' printed eventually
 * connect socket repl 192.168.2.2:7091
   * may take minutes before you see prompt
 * see play ns. load it into repl. may take time...
