@@ -1,12 +1,21 @@
 (ns com.widdindustries.play
   (:import (ev3dev.actuators.lego.motors EV3LargeRegulatedMotor)
-           (ev3dev.sensors.ev3 EV3TouchSensor)
-           (lejos.hardware.port MotorPort SensorPort)))
+           (ev3dev.sensors.ev3 EV3IRSensor EV3TouchSensor)
+           (lejos.hardware.port MotorPort SensorPort)
+           [lejos.utility Delay]))
 
-(defonce motor-right (EV3LargeRegulatedMotor. MotorPort/B))
-(defonce motor-left (EV3LargeRegulatedMotor. MotorPort/C))
+(def motor-right (EV3LargeRegulatedMotor. MotorPort/B))
+(def motor-left (EV3LargeRegulatedMotor. MotorPort/C))
 (def motors [motor-left motor-right])
-(defonce touch-sensor (EV3TouchSensor. SensorPort/S1))
+(def touch-sensor (EV3TouchSensor. SensorPort/S1))
+(def ir-sensor (EV3IRSensor. SensorPort/S4))
+(def ir-sampler (.getDistanceMode ir-sensor))
+
+(defn get-ir-distance []
+  float [] sample = new float[sp.sampleSize()];
+  sp.fetchSample(sample, 0);
+  distance = (int)sample[0];
+  )
 
 (defn straight-forward [motors]
   (doseq [motor motors]
@@ -23,13 +32,20 @@
 (comment
   (stop motors)
   (straight-forward motors)
-  
-  (def keep-running (atom true))
-  (while @keep-running
-    (if (EV3TouchSensor/.isPressed touch-sensor)
-      (straight-forward motors)
-      (straight-backward motors))
-    )
+
+  ; bumper car https://github.com/ev3dev-lang-java/examples/blob/master/ev3dev-lang-java/src/main/java/ev3dev/misc/BumperCar.java
+  (do (def keep-running (atom true))
+      (future
+        (let [forward? (atom true)]
+          (while @keep-running
+            (let [direction @forward?]
+              (when (EV3TouchSensor/.isPressed touch-sensor)
+                (swap! forward? not))
+              (if @forward?
+                (straight-forward motors)
+                (straight-backward motors))
+              (when (not= direction @forward?)
+                (Delay/msDelay 1000)))))))
   (do (reset! keep-running false)
       (stop motors))
 
