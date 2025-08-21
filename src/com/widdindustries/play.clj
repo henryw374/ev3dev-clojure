@@ -6,11 +6,12 @@
            (lejos.robotics SampleProvider)
            [lejos.utility Delay]))
 
-(def motor-right (EV3LargeRegulatedMotor. MotorPort/B))
-(def motor-left (EV3LargeRegulatedMotor. MotorPort/C))
+(defonce motor-right (run/try-3-times #(EV3LargeRegulatedMotor. MotorPort/B)))
+(defonce motor-left (run/try-3-times #(EV3LargeRegulatedMotor. MotorPort/C)))
+
 (def motors [motor-left motor-right])
-(def touch-sensor (EV3TouchSensor. SensorPort/S1))
-(def ir-sensor (EV3IRSensor. SensorPort/S4))
+(defonce touch-sensor (EV3TouchSensor. SensorPort/S1))
+(defonce ir-sensor (EV3IRSensor. SensorPort/S4))
 (def distance-sampler (.getDistanceMode ir-sensor))
 
 (defn get-ir-distance []
@@ -22,17 +23,22 @@
   (get-ir-distance)
   )
 
-(defn straight-forward [motors]
+(defn straight-backward [motors]
   (doseq [motor motors]
     (EV3LargeRegulatedMotor/.forward motor)))
 
-(defn straight-backward [motors]
+(defn straight-forward [motors]
   (doseq [motor motors]
     (EV3LargeRegulatedMotor/.backward motor)))
 
 (defn stop [motors]
   (doseq [motor motors]
     (EV3LargeRegulatedMotor/.stop motor)))
+
+(defonce shutdown
+  (.addShutdownHook (Runtime/getRuntime)
+    (Thread. (fn []
+               (stop motors)))))
 
 (defn stop-all []
   (run/stop)
@@ -53,25 +59,24 @@
 (comment
   (turn (/ full-turn-delay 4))
   (EV3TouchSensor/.isPressed touch-sensor)
+  
   (stop motors)
   (straight-forward motors)
   (straight-backward motors)
-
+  (+ 2 2)
   ; bumper car https://github.com/ev3dev-lang-java/examples/blob/master/ev3dev-lang-java/src/main/java/ev3dev/misc/BumperCar.java
   (run/run
     #(if (< (get-ir-distance) 40)
        (u-turn)
-       (straight-backward motors)))
+       (straight-forward motors)))
   
   (stop-all)
   
-  (EV3LargeRegulatedMotor/.setSpeed motor-a 800)
-  (EV3LargeRegulatedMotor/.forward motor-a)
+  
+  (EV3LargeRegulatedMotor/.setSpeed motor-right 800)
+  (EV3LargeRegulatedMotor/.getMaxSpeed motor-right )
   (EV3TouchSensor/.isPressed touch-sensor)
   
-  ; what's the difference?
-  (EV3LargeRegulatedMotor/.stop motor-a)
-  (EV3LargeRegulatedMotor/.brake motor-a)
   
   
   )
